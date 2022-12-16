@@ -10,7 +10,7 @@ import gradio as gr
 import PIL.Image
 import torch
 
-os.environ['PYTHONPATH'] = f'lora:{os.getenv("PYTHONPATH", "")}'
+os.environ['PYTHONPATH'] = f'custom-diffusion:{os.getenv("PYTHONPATH", "")}'
 
 
 def pad_image(image: PIL.Image.Image) -> PIL.Image.Image:
