@@ -60,11 +60,13 @@ class Trainer:
         resolution_s: str,
         concept_images: list | None,
         concept_prompt: str,
+        class_prompt: str,
         n_steps: int,
         learning_rate: float,
         train_text_encoder: bool,
         learning_rate_text: float,
         gradient_accumulation: int,
+        batch-size: int,
         fp16: bool,
         use_8bit_adam: bool,
     ) -> tuple[dict, list[pathlib.Path]]:
@@ -85,18 +87,24 @@ class Trainer:
         self.prepare_dataset(concept_images, resolution)
 
         command = f'''
-        accelerate launch lora/train_lora_dreambooth.py \
-          --pretrained_model_name_or_path={base_model}  \
-          --instance_data_dir={self.instance_data_dir} \
+        accelerate launch custom-diffusion/src/diffuser_training.py \
+          --pretrained_model_name_or_path={base_model}   \
+          --instance_data_dir={self.instance_data_dir}  \
+          --class_data_dir={self.class_data_dir} \
           --output_dir={self.output_dir} \
+          --with_prior_preservation --real_prior --prior_loss_weight=1.0 \
           --instance_prompt="{concept_prompt}" \
-          --resolution={resolution} \
-          --train_batch_size=1 \
-          --gradient_accumulation_steps={gradient_accumulation} \
-          --learning_rate={learning_rate} \
-          --lr_scheduler=constant \
+          --class_prompt="{class_prompt}" \
+          --resolution={resolution}  \
+          --train_batch_size={batch-size}  \
+          --gradient_accumulation_steps={gradient_accumulation}  \
+          --learning_rate={learning_rate}  \
+          --lr_scheduler="constant" \
           --lr_warmup_steps=0 \
-          --max_train_steps={n_steps}
+          --max_train_steps={n_steps} \
+          --num_class_images=200 \
+          --scale_lr \
+          --modifier_token "<new1>" 
         '''
         if fp16:
             command += ' --mixed_precision fp16'
