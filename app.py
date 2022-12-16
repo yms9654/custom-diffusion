@@ -72,6 +72,8 @@ def create_training_demo(trainer: Trainer,
                 concept_images = gr.Files(label='Images for your concept')
                 concept_prompt = gr.Textbox(label='Concept Prompt',
                                             max_lines=1)
+                class_prompt = gr.Textbox(label='Regularization set Prompt',
+                                            max_lines=1)
                 gr.Markdown('''
                     - Upload images of the style you are planning on training on.
                     - For a concept prompt, use a unique, made up word to avoid collisions.
@@ -80,11 +82,13 @@ def create_training_demo(trainer: Trainer,
                 gr.Markdown('Training Parameters')
                 num_training_steps = gr.Number(
                     label='Number of Training Steps', value=1000, precision=0)
-                learning_rate = gr.Number(label='Learning Rate', value=0.0001)
+                learning_rate = gr.Number(label='Learning Rate', value=0.00001)
                 train_text_encoder = gr.Checkbox(label='Train Text Encoder',
                                                  value=True)
+                modifier_token = gr.Checkbox(label='modifier token',
+                                                 value=True)
                 learning_rate_text = gr.Number(
-                    label='Learning Rate for Text Encoder', value=0.00005)
+                    label='Learning Rate for Text Encoder', value=0.00001)
                 gradient_accumulation = gr.Number(
                     label='Number of Gradient Accumulation',
                     value=1,
@@ -145,7 +149,7 @@ def find_weight_files() -> list[str]:
     return [path.relative_to(curr_dir).as_posix() for path in paths]
 
 
-def reload_lora_weight_list() -> dict:
+def reload_custom_diffusion_weight_list() -> dict:
     return gr.update(choices=find_weight_files())
 
 
@@ -159,23 +163,13 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                     label='Base Model',
                     visible=False)
                 reload_button = gr.Button('Reload Weight List')
-                lora_weight_name = gr.Dropdown(choices=find_weight_files(),
-                                               value='lora/lora_disney.pt',
-                                               label='LoRA Weight File')
+                weight_name = gr.Dropdown(choices=find_weight_files(),
+                                               value='custom-diffusion/cat.ckpt',
+                                               label='Custom Diffusion Weight File')
                 prompt = gr.Textbox(
                     label='Prompt',
                     max_lines=1,
-                    placeholder='Example: "style of sks, baby lion"')
-                alpha = gr.Slider(label='Alpha',
-                                  minimum=0,
-                                  maximum=2,
-                                  step=0.05,
-                                  value=1)
-                alpha_for_text = gr.Slider(label='Alpha for Text Encoder',
-                                           minimum=0,
-                                           maximum=2,
-                                           step=0.05,
-                                           value=1)
+                    placeholder='Example: "<new1> cat swimming in a pool"')
                 seed = gr.Slider(label='Seed',
                                  minimum=0,
                                  maximum=100000,
@@ -184,52 +178,53 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                 with gr.Accordion('Other Parameters', open=False):
                     num_steps = gr.Slider(label='Number of Steps',
                                           minimum=0,
-                                          maximum=100,
+                                          maximum=500,
                                           step=1,
-                                          value=50)
+                                          value=200)
                     guidance_scale = gr.Slider(label='CFG Scale',
                                                minimum=0,
                                                maximum=50,
                                                step=0.1,
-                                               value=7)
+                                               value=6
+                    eta = gr.Slider(label='CFG Scale',
+                                               minimum=0,
+                                               maximum=1.,
+                                               step=0.1,
+                                               value=1.)
 
                 run_button = gr.Button('Generate')
 
                 gr.Markdown('''
-                - Models with names starting with "lora/" are the pretrained models provided in the [original repo](https://github.com/cloneofsimo/lora), and the ones with names starting with "results/" are your trained models.
+                - Models with names starting with "custom-diffusion/" are the pretrained models provided in the [original repo](https://github.com/adobe-research/custom-diffusion), and the ones with names starting with "results/" are your trained models.
                 - After training, you can press "Reload Weight List" button to load your trained model names.
-                - The pretrained models for "disney", "illust" and "pop" are trained with the concept prompt "style of sks".
-                - The pretrained model for "kiriko" is trained with the concept prompt "game character bnha". For this model, the text encoder is also trained.
                 ''')
             with gr.Column():
                 result = gr.Image(label='Result')
 
-        reload_button.click(fn=reload_lora_weight_list,
+        reload_button.click(fn=reload_custom_diffusion_weight_list,
                             inputs=None,
-                            outputs=lora_weight_name)
+                            outputs=weight_name)
         prompt.submit(fn=pipe.run,
                       inputs=[
                           base_model,
-                          lora_weight_name,
+                          weight_name,
                           prompt,
-                          alpha,
-                          alpha_for_text,
                           seed,
                           num_steps,
                           guidance_scale,
+                          eta,
                       ],
                       outputs=result,
                       queue=False)
         run_button.click(fn=pipe.run,
                          inputs=[
                              base_model,
-                             lora_weight_name,
+                             weight_name,
                              prompt,
-                             alpha,
-                             alpha_for_text,
                              seed,
                              num_steps,
                              guidance_scale,
+                             eta,
                          ],
                          outputs=result,
                          queue=False)
