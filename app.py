@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-"""Unofficial demo app for https://github.com/cloneofsimo/lora.
+"""Unofficial demo app for https://github.com/adobe-research/custom-diffusion.
 
 The code in this repo is partly adapted from the following repository:
-https://huggingface.co/spaces/multimodalart/dreambooth-training/tree/a00184917aa273c6d8adab08d5deb9b39b997938
+https://huggingface.co/spaces/hysts/LoRA-SD-training
 The license of the original code is MIT, which is specified in the README.md.
 """
 
@@ -18,10 +18,10 @@ from inference import InferencePipeline
 from trainer import Trainer
 from uploader import upload
 
-TITLE = '# LoRA + StableDiffusion Training UI'
-DESCRIPTION = 'This is an unofficial demo for [https://github.com/cloneofsimo/lora](https://github.com/cloneofsimo/lora).'
+TITLE = '# Custom Diffusion + StableDiffusion Training UI'
+DESCRIPTION = 'This is an unofficial demo for [https://github.com/adobe-research/custom-diffusion](https://github.com/adobe-research/custom-diffusion).'
 
-ORIGINAL_SPACE_ID = 'hysts/LoRA-SD-training'
+ORIGINAL_SPACE_ID = 'nupurkmr9/custom-diffusion'
 SPACE_ID = os.getenv('SPACE_ID', ORIGINAL_SPACE_ID)
 SHARED_UI_WARNING = f'''# Attention - This Space doesn't work in this shared UI. You can duplicate and use it with a paid private T4 GPU.
 
