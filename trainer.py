@@ -112,7 +112,7 @@ class Trainer:
         if use_8bit_adam:
             command += ' --use_8bit_adam'
         if train_text_encoder:
-            command += f' --train_text_encoder --learning_rate_text={learning_rate_text} --color_jitter'
+            command += f' --train_text_encoder --learning_rate_text={learning_rate_text}'
 
         with open(self.output_dir / 'train.sh', 'w') as f:
             command_s = ' '.join(command.split())
