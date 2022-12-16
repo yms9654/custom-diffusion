@@ -34,6 +34,7 @@ class Trainer:
 
         self.output_dir = pathlib.Path('results')
         self.instance_data_dir = self.output_dir / 'training_data'
+        self.class_data_dir = self.output_dir / 'regularization_data'
 
     def check_if_running(self) -> dict:
         if self.is_running:
@@ -92,7 +93,7 @@ class Trainer:
           --instance_data_dir={self.instance_data_dir}  \
           --class_data_dir={self.class_data_dir} \
           --output_dir={self.output_dir} \
-          --with_prior_preservation --real_prior --prior_loss_weight=1.0 \
+          --with_prior_preservation --prior_loss_weight=1.0 \
           --instance_prompt="{concept_prompt}" \
           --class_prompt="{class_prompt}" \
           --resolution={resolution}  \
