@@ -185,7 +185,7 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                                                minimum=0,
                                                maximum=50,
                                                step=0.1,
-                                               value=6
+                                               value=6)
                     eta = gr.Slider(label='CFG Scale',
                                                minimum=0,
                                                maximum=1.,
