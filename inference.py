@@ -9,7 +9,7 @@ import PIL.Image
 import torch
 from diffusers import StableDiffusionPipeline
 
-sys.path.insert(0, 'lora')
+sys.path.insert(0, 'custom-diffusion')
 from src import sample_diffuser, diffuser_training
 
 
