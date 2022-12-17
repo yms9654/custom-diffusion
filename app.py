@@ -19,7 +19,7 @@ from trainer import Trainer
 from uploader import upload
 
 TITLE = '# Custom Diffusion + StableDiffusion Training UI'
-DESCRIPTION = 'This is an unofficial demo for [https://github.com/adobe-research/custom-diffusion](https://github.com/adobe-research/custom-diffusion).'
+DESCRIPTION = 'This is a demo for [https://github.com/adobe-research/custom-diffusion](https://github.com/adobe-research/custom-diffusion).'
 
 ORIGINAL_SPACE_ID = 'nupurkmr9/custom-diffusion'
 SPACE_ID = os.getenv('SPACE_ID', ORIGINAL_SPACE_ID)
@@ -57,26 +57,27 @@ def create_training_demo(trainer: Trainer,
                          pipe: InferencePipeline) -> gr.Blocks:
     with gr.Blocks() as demo:
         base_model = gr.Dropdown(
-            choices=['stabilityai/stable-diffusion-2-1-base'],
-            value='stabilityai/stable-diffusion-2-1-base',
+            choices=['stabilityai/stable-diffusion-2-1-base', 'CompVis/stable-diffusion-v1-4'],
+            value='CompVis/stable-diffusion-v1-4',
             label='Base Model',
-            visible=False)
-        resolution = gr.Dropdown(choices=['512'],
+            visible=True)
+        resolution = gr.Dropdown(choices=['512', '768'],
                                  value='512',
                                  label='Resolution',
-                                 visible=False)
+                                 visible=True)
 
         with gr.Row():
             with gr.Box():
                 gr.Markdown('Training Data')
                 concept_images = gr.Files(label='Images for your concept')
                 concept_prompt = gr.Textbox(label='Concept Prompt',
-                                            max_lines=1)
+                                            max_lines=1, placeholder='Example: "photo of a \<new1\> cat"')
                 class_prompt = gr.Textbox(label='Regularization set Prompt',
-                                            max_lines=1)
+                                            max_lines=1, placeholder='Example: "cat"')
                 gr.Markdown('''
-                    - Upload images of the style you are planning on training on.
-                    - For a concept prompt, use a unique, made up word to avoid collisions.
+                    - We use "\<new1\>" appended in front of the concept. E.g. "\<new1\> cat".
+                    - For a new concept, use "photo of a \<new1\> cat" for concept_prompt and "cat" for class_prompt.
+                    - For a style concept, use "painting in the style of \<new1\> art" for concept_prompt and "art" for class_prompt.
                     ''')
             with gr.Box():
                 gr.Markdown('Training Parameters')
@@ -84,16 +85,15 @@ def create_training_demo(trainer: Trainer,
                     label='Number of Training Steps', value=1000, precision=0)
                 learning_rate = gr.Number(label='Learning Rate', value=0.00001)
                 train_text_encoder = gr.Checkbox(label='Train Text Encoder',
-                                                 value=True)
+                                                 value=False)
                 modifier_token = gr.Checkbox(label='modifier token',
                                                  value=True)
-                learning_rate_text = gr.Number(
-                    label='Learning Rate for Text Encoder', value=0.00001)
+                batch_size = gr.Number(
+                    label='batch_size', value=1, precision=0)
                 gradient_accumulation = gr.Number(
                     label='Number of Gradient Accumulation',
                     value=1,
                     precision=0)
-                fp16 = gr.Checkbox(label='FP16', value=True)
                 use_8bit_adam = gr.Checkbox(label='Use 8bit Adam', value=True)
                 gr.Markdown('''
                     - It will take about 8 minutes to train for 1000 steps with a T4 GPU.
@@ -111,19 +111,22 @@ def create_training_demo(trainer: Trainer,
                         training_status = gr.Markdown()
                     output_files = gr.Files(label='Trained Weight Files')
 
-        run_button.click(fn=pipe.clear)
+        # run_button.click(fn=pipe.clear,
+        #                     inputs=None,
+        #                     outputs=None,)
         run_button.click(fn=trainer.run,
                          inputs=[
                              base_model,
                              resolution,
                              concept_images,
                              concept_prompt,
+                             class_prompt,
                              num_training_steps,
                              learning_rate,
                              train_text_encoder,
-                             learning_rate_text,
+                             modifier_token,
                              gradient_accumulation,
-                             fp16,
+                             batch_size,
                              use_8bit_adam,
                          ],
                          outputs=[
@@ -144,8 +147,7 @@ def create_training_demo(trainer: Trainer,
 
 def find_weight_files() -> list[str]:
     curr_dir = pathlib.Path(__file__).parent
-    paths = sorted(curr_dir.rglob('*.pt'))
-    paths = [path for path in paths if not path.stem.endswith('.text_encoder')]
+    paths = sorted(curr_dir.rglob('*.bin'))
     return [path.relative_to(curr_dir).as_posix() for path in paths]
 
 
@@ -158,18 +160,18 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
         with gr.Row():
             with gr.Column():
                 base_model = gr.Dropdown(
-                    choices=['stabilityai/stable-diffusion-2-1-base'],
-                    value='stabilityai/stable-diffusion-2-1-base',
+                    choices=['stabilityai/stable-diffusion-2-1-base', 'CompVis/stable-diffusion-v1-4'],
+                    value='CompVis/stable-diffusion-v1-4',
                     label='Base Model',
-                    visible=False)
+                    visible=True)
                 reload_button = gr.Button('Reload Weight List')
                 weight_name = gr.Dropdown(choices=find_weight_files(),
-                                               value='custom-diffusion/cat.ckpt',
+                                               value='custom-diffusion-models/cat.bin',
                                                label='Custom Diffusion Weight File')
                 prompt = gr.Textbox(
                     label='Prompt',
                     max_lines=1,
-                    placeholder='Example: "<new1> cat swimming in a pool"')
+                    placeholder='Example: "\<new1\> cat in outer space"')
                 seed = gr.Slider(label='Seed',
                                  minimum=0,
                                  maximum=100000,
@@ -186,16 +188,21 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                                                maximum=50,
                                                step=0.1,
                                                value=6)
-                    eta = gr.Slider(label='CFG Scale',
+                    eta = gr.Slider(label='DDIM eta',
                                                minimum=0,
                                                maximum=1.,
                                                step=0.1,
                                                value=1.)
+                    batch_size = gr.Slider(label='Batch Size',
+                                               minimum=0,
+                                               maximum=10.,
+                                               step=1,
+                                               value=2)
 
                 run_button = gr.Button('Generate')
 
                 gr.Markdown('''
-                - Models with names starting with "custom-diffusion/" are the pretrained models provided in the [original repo](https://github.com/adobe-research/custom-diffusion), and the ones with names starting with "results/" are your trained models.
+                - Models with names starting with "custom-diffusion-models/" are the pretrained models provided in the [original repo](https://github.com/adobe-research/custom-diffusion), and the ones with names starting with "results/" are your trained models.
                 - After training, you can press "Reload Weight List" button to load your trained model names.
                 ''')
             with gr.Column():
@@ -213,6 +220,7 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                           num_steps,
                           guidance_scale,
                           eta,
+                          batch_size,
                       ],
                       outputs=result,
                       queue=False)
@@ -225,6 +233,7 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                              num_steps,
                              guidance_scale,
                              eta,
+                             batch_size,
                          ],
                          outputs=result,
                          queue=False)

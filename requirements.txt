@@ -8,3 +8,4 @@ torchvision==0.14.0
 transformers==4.25.1
 triton==2.0.0.dev20220701
 xformers==0.0.13
+clip_retrieval

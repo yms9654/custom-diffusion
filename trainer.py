@@ -65,10 +65,9 @@ class Trainer:
         n_steps: int,
         learning_rate: float,
         train_text_encoder: bool,
-        learning_rate_text: float,
+        modifier_token: bool,
         gradient_accumulation: int,
-        batch-size: int,
-        fp16: bool,
+        batch_size: int,
         use_8bit_adam: bool,
     ) -> tuple[dict, list[pathlib.Path]]:
         if not torch.cuda.is_available():
@@ -91,28 +90,27 @@ class Trainer:
         accelerate launch custom-diffusion/src/diffuser_training.py \
           --pretrained_model_name_or_path={base_model}   \
           --instance_data_dir={self.instance_data_dir}  \
-          --class_data_dir={self.class_data_dir} \
           --output_dir={self.output_dir} \
-          --with_prior_preservation --prior_loss_weight=1.0 \
           --instance_prompt="{concept_prompt}" \
+          --class_data_dir={self.class_data_dir} \
+          --with_prior_preservation --real_prior --prior_loss_weight=1.0 \
           --class_prompt="{class_prompt}" \
           --resolution={resolution}  \
-          --train_batch_size={batch-size}  \
+          --train_batch_size={batch_size}  \
           --gradient_accumulation_steps={gradient_accumulation}  \
           --learning_rate={learning_rate}  \
           --lr_scheduler="constant" \
           --lr_warmup_steps=0 \
           --max_train_steps={n_steps} \
           --num_class_images=200 \
-          --scale_lr \
-          --modifier_token "<new1>" 
+          --scale_lr 
         '''
-        if fp16:
-            command += ' --mixed_precision fp16'
+        if modifier_token:
+            command += ' --modifier_token "<new1>"'
         if use_8bit_adam:
             command += ' --use_8bit_adam'
         if train_text_encoder:
-            command += f' --train_text_encoder --learning_rate_text={learning_rate_text}'
+            command += f' --train_text_encoder'
 
         with open(self.output_dir / 'train.sh', 'w') as f:
             command_s = ' '.join(command.split())
@@ -126,5 +124,5 @@ class Trainer:
             result_message = 'Training Completed!'
         else:
             result_message = 'Training Failed!'
-        weight_paths = sorted(self.output_dir.glob('*.pt'))
+        weight_paths = sorted(self.output_dir.glob('*.bin'))
         return gr.update(value=result_message), weight_paths

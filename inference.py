@@ -6,11 +6,12 @@ import sys
 
 import gradio as gr
 import PIL.Image
+import numpy as np
+
 import torch
 from diffusers import StableDiffusionPipeline
-
 sys.path.insert(0, 'custom-diffusion')
-from src import sample_diffuser, diffuser_training
+from src import diffuser_training
 
 
 class InferencePipeline:
@@ -59,6 +60,7 @@ class InferencePipeline:
         n_steps: int,
         guidance_scale: float,
         eta: float,
+        batch_size: int,
     ) -> PIL.Image.Image:
         if not torch.cuda.is_available():
             raise gr.Error('CUDA is not available.')
@@ -66,9 +68,11 @@ class InferencePipeline:
         self.load_pipe(base_model, weight_name)
 
         generator = torch.Generator(device=self.device).manual_seed(seed)
-        out = self.pipe(prompt,
+        out = self.pipe([prompt]*batch_size,
                         num_inference_steps=n_steps,
                         guidance_scale=guidance_scale,
                         eta = eta,
                         generator=generator)  # type: ignore
-        return out.images[0]
+        out = out.images
+        out = PIL.Image.fromarray(np.hstack([np.array(x) for x in out]))
+        return out
