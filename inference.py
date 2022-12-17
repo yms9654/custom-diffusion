@@ -10,8 +10,8 @@ import numpy as np
 
 import torch
 from diffusers import StableDiffusionPipeline
-sys.path.insert(0, 'custom-diffusion')
-from src import diffuser_training
+sys.path.insert(0, './custom-diffusion')
+from custom-diffusion.src import diffuser_training
 
 
 class InferencePipeline:
