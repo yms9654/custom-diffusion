@@ -12,7 +12,27 @@ import torch
 from diffusers import StableDiffusionPipeline
 sys.path.insert(0, 'custom-diffusion')
 
-from src import diffuser_training
+
+def load_model(text_encoder, tokenizer, unet, save_path, modifier_token, freeze_model='crossattn_kv'):
+    logger.info("loading embeddings")
+    st = torch.load(save_path)
+    if 'text_encoder' in st:
+        text_encoder.load_state_dict(st['text_encoder'])
+    if modifier_token in st:
+        _ = tokenizer.add_tokens(modifier_token)
+        modifier_token_id = tokenizer.convert_tokens_to_ids(modifier_token)
+        # Resize the token embeddings as we are adding new special tokens to the tokenizer
+        text_encoder.resize_token_embeddings(len(tokenizer))
+        token_embeds = text_encoder.get_input_embeddings().weight.data
+        token_embeds[modifier_token_id] = st[modifier_token]
+    print(st.keys())
+    for name, params in unet.named_parameters():
+        if freeze_model == 'crossattn':
+            if 'attn2' in name:
+                params.data.copy_(st['unet'][f'{name}'])
+        else:
+            if 'attn2.to_k' in name or 'attn2.to_v' in name:
+                params.data.copy_(st['unet'][f'{name}'])
 
 
 class InferencePipeline:
@@ -48,7 +68,7 @@ class InferencePipeline:
                 model_id, torch_dtype=torch.float16)
             pipe = pipe.to(self.device)
 
-        diffuser_training.load_model(pipe.text_encoder, pipe.tokenizer, pipe.unet, weight_path, '<new1>')
+        load_model(pipe.text_encoder, pipe.tokenizer, pipe.unet, weight_path, '<new1>')
 
         self.pipe = pipe
 
