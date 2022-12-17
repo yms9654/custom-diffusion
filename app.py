@@ -111,9 +111,9 @@ def create_training_demo(trainer: Trainer,
                         training_status = gr.Markdown()
                     output_files = gr.Files(label='Trained Weight Files')
 
-        # run_button.click(fn=pipe.clear,
-        #                     inputs=None,
-        #                     outputs=None,)
+        run_button.click(fn=pipe.clear,
+                            inputs=None,
+                            outputs=None,)
         run_button.click(fn=trainer.run,
                          inputs=[
                              base_model,
@@ -281,4 +281,4 @@ with gr.Blocks(css='style.css') as demo:
         with gr.TabItem('Upload'):
             create_upload_demo()
 
-demo.queue(default_enabled=False).launch(share=False)
+demo.queue(default_enabled=False).launch(share=True)
