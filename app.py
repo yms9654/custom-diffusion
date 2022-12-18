@@ -76,8 +76,8 @@ def create_training_demo(trainer: Trainer,
                 class_prompt = gr.Textbox(label='Regularization set Prompt',
                                             max_lines=1, placeholder='Example: "cat"')
                 gr.Markdown('''
-                    - Use "\<new1\>" appended in front of the concept. E.g. "\<new1\> cat" if modifier_token is enabled.
-                    - For a new concept e.g. concept_prompt is "photo of a \<new1\> cat" and "cat" for class_prompt.
+                    - Use "\<new1\>" appended in front of the concept, e.g., "\<new1\> cat", if modifier_token is enabled.
+                    - For a new concept an e.g. concept_prompt is "photo of a \<new1\> cat" and "cat" for class_prompt.
                     - For a style concept, use "painting in the style of \<new1\> art" for concept_prompt and "art" for class_prompt.
                     ''')
             with gr.Box():
