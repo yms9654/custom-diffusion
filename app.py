@@ -38,6 +38,8 @@ You can assign a GPU in the {SETTINGS} tab if you are running this on HF Spaces.
 </center>
 '''
 
+os.system("git clone https://github.com/adobe-research/custom-diffusion")
+sys.path.append("custom-diffusion")
 
 def show_warning(warning_text: str) -> gr.Blocks:
     with gr.Blocks() as demo:

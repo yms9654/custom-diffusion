@@ -10,7 +10,7 @@ import numpy as np
 
 import torch
 from diffusers import StableDiffusionPipeline
-sys.path.insert(0, 'customdiffusion')
+sys.path.insert(0, 'custom-diffusion')
 
 
 def load_model(text_encoder, tokenizer, unet, save_path, modifier_token, freeze_model='crossattn_kv'):
