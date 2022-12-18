@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-"""Unofficial demo app for https://github.com/adobe-research/custom-diffusion.
+"""Demo app for https://github.com/adobe-research/custom-diffusion.
 
 The code in this repo is partly adapted from the following repository:
 https://huggingface.co/spaces/hysts/LoRA-SD-training
-The license of the original code is MIT, which is specified in the README.md.
 """
 
 from __future__ import annotations
@@ -176,7 +175,7 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                                  minimum=0,
                                  maximum=100000,
                                  step=1,
-                                 value=1)
+                                 value=42)
                 with gr.Accordion('Other Parameters', open=False):
                     num_steps = gr.Slider(label='Number of Steps',
                                           minimum=0,

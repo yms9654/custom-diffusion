@@ -14,7 +14,6 @@ sys.path.insert(0, 'custom-diffusion')
 
 
 def load_model(text_encoder, tokenizer, unet, save_path, modifier_token, freeze_model='crossattn_kv'):
-    logger.info("loading embeddings")
     st = torch.load(save_path)
     if 'text_encoder' in st:
         text_encoder.load_state_dict(st['text_encoder'])
