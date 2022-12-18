@@ -10,7 +10,7 @@ import gradio as gr
 import PIL.Image
 import torch
 
-os.environ['PYTHONPATH'] = f'custom-diffusion:{os.getenv("PYTHONPATH", "")}'
+os.environ['PYTHONPATH'] = f'customdiffusion:{os.getenv("PYTHONPATH", "")}'
 
 
 def pad_image(image: PIL.Image.Image) -> PIL.Image.Image:
@@ -87,7 +87,7 @@ class Trainer:
         self.prepare_dataset(concept_images, resolution)
 
         command = f'''
-        accelerate launch custom-diffusion/src/diffuser_training.py \
+        accelerate launch customdiffusion/src/diffuser_training.py \
           --pretrained_model_name_or_path={base_model}   \
           --instance_data_dir={self.instance_data_dir}  \
           --output_dir={self.output_dir} \
