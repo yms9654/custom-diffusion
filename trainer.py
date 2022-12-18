@@ -69,6 +69,7 @@ class Trainer:
         gradient_accumulation: int,
         batch_size: int,
         use_8bit_adam: bool,
+        gradient_checkpointing: bool,
     ) -> tuple[dict, list[pathlib.Path]]:
         if not torch.cuda.is_available():
             raise gr.Error('CUDA is not available.')
@@ -111,6 +112,8 @@ class Trainer:
             command += ' --use_8bit_adam'
         if train_text_encoder:
             command += f' --train_text_encoder'
+        if gradient_checkpointing:
+            command += f' --gradient_checkpointing'
 
         with open(self.output_dir / 'train.sh', 'w') as f:
             command_s = ' '.join(command.split())

@@ -76,8 +76,8 @@ def create_training_demo(trainer: Trainer,
                 class_prompt = gr.Textbox(label='Regularization set Prompt',
                                             max_lines=1, placeholder='Example: "cat"')
                 gr.Markdown('''
-                    - We use "\<new1\>" appended in front of the concept. E.g. "\<new1\> cat".
-                    - For a new concept, use "photo of a \<new1\> cat" for concept_prompt and "cat" for class_prompt.
+                    - Use "\<new1\>" appended in front of the concept. E.g. "\<new1\> cat" if modifier_token is enabled.
+                    - For a new concept e.g. concept_prompt is "photo of a \<new1\> cat" and "cat" for class_prompt.
                     - For a style concept, use "painting in the style of \<new1\> art" for concept_prompt and "art" for class_prompt.
                     ''')
             with gr.Box():
@@ -95,10 +95,13 @@ def create_training_demo(trainer: Trainer,
                     label='Number of Gradient Accumulation',
                     value=1,
                     precision=0)
-                use_8bit_adam = gr.Checkbox(label='Use 8bit Adam', value=True)
+                with gr.Row():
+                    use_8bit_adam = gr.Checkbox(label='Use 8bit Adam', value=True) 
+                    gradient_checkpointing = gr.Checkbox(label='Enable gradient checkpointing', value=False)
                 gr.Markdown('''
                     - Only enable one of "Train Text Encoder" or "modifier token" or None.
                     - It will take about ~10 minutes to train for 1000 steps and ~21GB on a 3090 GPU.
+                    - Enable gradient checkpointing to save memory (~14GB) at the expense of slower backward pass.
                     - Note that your trained models will be deleted when the second training is started. You can upload your trained model in the "Upload" tab.
                     ''')
 
@@ -129,6 +132,7 @@ def create_training_demo(trainer: Trainer,
                              gradient_accumulation,
                              batch_size,
                              use_8bit_adam,
+                             gradient_checkpointing
                          ],
                          outputs=[
                              training_status,
