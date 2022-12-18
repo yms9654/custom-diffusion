@@ -97,9 +97,8 @@ def create_training_demo(trainer: Trainer,
                     precision=0)
                 use_8bit_adam = gr.Checkbox(label='Use 8bit Adam', value=True)
                 gr.Markdown('''
-                    - Only enable one of "Train Text Encoder" or "modifier token".
-                    - It will take about ~10 minutes to train for 1000 steps with a 3090 GPU.
-                    - You may want to try a small number of steps first, like 1, to see if everything works fine in your environment.
+                    - Only enable one of "Train Text Encoder" or "modifier token" or None.
+                    - It will take about ~10 minutes to train for 1000 steps and ~21GB on a 3090 GPU.
                     - Note that your trained models will be deleted when the second training is started. You can upload your trained model in the "Upload" tab.
                     ''')
 
