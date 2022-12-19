@@ -10,9 +10,8 @@ import numpy as np
 
 import torch
 from diffusers import StableDiffusionPipeline
-sys.path.insert(0, 'custom-diffusion')
+sys.path.insert(0, './custom-diffusion')
 
-from src import diffuser_training
 
 # def load_model(text_encoder, tokenizer, unet, save_path, modifier_token, freeze_model='crossattn_kv'):
 #     st = torch.load(save_path)
@@ -68,6 +67,7 @@ class InferencePipeline:
                 model_id, torch_dtype=torch.float16)
             pipe = pipe.to(self.device)
 
+        from src import diffuser_training
         diffuser_training.load_model(pipe.text_encoder, pipe.tokenizer, pipe.unet, weight_path, '<new1>')
 
         self.pipe = pipe
