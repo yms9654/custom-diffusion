@@ -18,7 +18,10 @@ from trainer import Trainer
 from uploader import upload
 
 TITLE = '# Custom Diffusion + StableDiffusion Training UI'
-DESCRIPTION = 'This is a demo for [https://github.com/adobe-research/custom-diffusion](https://github.com/adobe-research/custom-diffusion).'
+DESCRIPTION = '''This is a demo for [https://github.com/adobe-research/custom-diffusion](https://github.com/adobe-research/custom-diffusion).
+It is recommended to upgrade to GPU in Settings after duplicating this space to use it.
+<a href="https://huggingface.co/spaces/nupurkmr9/custom-diffusion?duplicate=true"><img src="https://bit.ly/3gLdBN6" alt="Duplicate Space"></a>
+'''
 
 ORIGINAL_SPACE_ID = 'nupurkmr9/custom-diffusion'
 SPACE_ID = os.getenv('SPACE_ID', ORIGINAL_SPACE_ID)
