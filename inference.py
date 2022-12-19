@@ -12,7 +12,7 @@ import torch
 from diffusers import StableDiffusionPipeline
 sys.path.insert(0, 'custom-diffusion')
 
-from sys import diffuser_training
+from src import diffuser_training
 
 # def load_model(text_encoder, tokenizer, unet, save_path, modifier_token, freeze_model='crossattn_kv'):
 #     st = torch.load(save_path)
