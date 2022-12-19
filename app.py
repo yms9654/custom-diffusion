@@ -99,9 +99,10 @@ def create_training_demo(trainer: Trainer,
                     use_8bit_adam = gr.Checkbox(label='Use 8bit Adam', value=True) 
                     gradient_checkpointing = gr.Checkbox(label='Enable gradient checkpointing', value=False)
                 gr.Markdown('''
-                    - Only enable one of "Train Text Encoder" or "modifier token" or None.
-                    - It will take about ~10 minutes to train for 1000 steps and ~21GB on a 3090 GPU.
+                    - It will take about ~10 minutes to train for 1000 steps and ~21GB on a 3090 GPU. 
+                    - Our results in the paper are with the above batch-size of 2 and 2 GPUs.
                     - Enable gradient checkpointing for lower memory requirements (~14GB) at the expense of slower backward pass.
+                    - If "Train Text Encoder", disable "modifier token".
                     - Note that your trained models will be deleted when the second training is started. You can upload your trained model in the "Upload" tab.
                     ''')
 
