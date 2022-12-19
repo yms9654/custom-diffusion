@@ -208,7 +208,7 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                 run_button = gr.Button('Generate')
 
                 gr.Markdown('''
-                - Models with names starting with "custom-diffusion-models/" are the pretrained models provided in the [original repo](https://github.com/adobe-research/custom-diffusion), and the ones with names starting with "results/" are your trained models.
+                - Models with names starting with "custom-diffusion-models/" are the pretrained models provided in the [original repo](https://github.com/adobe-research/custom-diffusion), and the ones with names starting with "results/delta.bin" are your trained models.
                 - After training, you can press "Reload Weight List" button to load your trained model names.
                 ''')
             with gr.Column():
