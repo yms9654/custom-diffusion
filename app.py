@@ -154,6 +154,7 @@ def create_training_demo(trainer: Trainer,
 def find_weight_files() -> list[str]:
     curr_dir = pathlib.Path(__file__).parent
     paths = sorted(curr_dir.rglob('*.bin'))
+    paths = [path for path in paths if '.lfs' not in path.name]
     return [path.relative_to(curr_dir).as_posix() for path in paths]
 
 
