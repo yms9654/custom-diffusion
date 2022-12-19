@@ -101,7 +101,7 @@ def create_training_demo(trainer: Trainer,
                 gr.Markdown('''
                     - Only enable one of "Train Text Encoder" or "modifier token" or None.
                     - It will take about ~10 minutes to train for 1000 steps and ~21GB on a 3090 GPU.
-                    - Enable gradient checkpointing to save memory (~14GB) at the expense of slower backward pass.
+                    - Enable gradient checkpointing for lower memory requirements (~14GB) at the expense of slower backward pass.
                     - Note that your trained models will be deleted when the second training is started. You can upload your trained model in the "Upload" tab.
                     ''')
 
