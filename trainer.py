@@ -70,6 +70,7 @@ class Trainer:
         batch_size: int,
         use_8bit_adam: bool,
         gradient_checkpointing: bool,
+        gen_images: bool,
     ) -> tuple[dict, list[pathlib.Path]]:
         if not torch.cuda.is_available():
             raise gr.Error('CUDA is not available.')
@@ -94,7 +95,7 @@ class Trainer:
           --output_dir={self.output_dir} \
           --instance_prompt="{concept_prompt}" \
           --class_data_dir={self.class_data_dir} \
-          --with_prior_preservation --real_prior --prior_loss_weight=1.0 \
+          --with_prior_preservation --prior_loss_weight=1.0 \
           --class_prompt="{class_prompt}" \
           --resolution={resolution}  \
           --train_batch_size={batch_size}  \
@@ -108,6 +109,8 @@ class Trainer:
         '''
         if modifier_token:
             command += ' --modifier_token "<new1>"'
+        if not gen_images:
+            command += ' --real_prior'
         if use_8bit_adam:
             command += ' --use_8bit_adam'
         if train_text_encoder:
