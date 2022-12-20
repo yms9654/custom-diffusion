@@ -22,6 +22,15 @@ DESCRIPTION = '''This is a demo for [https://github.com/adobe-research/custom-di
 It is recommended to upgrade to GPU in Settings after duplicating this space to use it.
 <a href="https://huggingface.co/spaces/nupurkmr9/custom-diffusion?duplicate=true"><img src="https://bit.ly/3gLdBN6" alt="Duplicate Space"></a>
 '''
+DETAILDESCRIPTION='''
+Custom Diffusion allows you to fine-tune text-to-image diffusion models, such as Stable Diffusion, given a few images of a new concept (~4-20). 
+We fine-tune only a subset of model parameters, namely key and value projection matrices, in the cross-attention layers and the modifier token used to represent the object. 
+This also reduces the extra storage for each additional concept to 75MB.
+Our method further allows you to use a combination of concepts. Demo for multiple concepts will be added soon.
+<center>
+<img src="https://huggingface.co/spaces/nupurkmr9/custom-diffusion/resolve/main/method.jpg" width="600" align="center" >
+</center>
+'''
 
 ORIGINAL_SPACE_ID = 'nupurkmr9/custom-diffusion'
 SPACE_ID = os.getenv('SPACE_ID', ORIGINAL_SPACE_ID)
@@ -74,38 +83,44 @@ def create_training_demo(trainer: Trainer,
             with gr.Box():
                 gr.Markdown('Training Data')
                 concept_images = gr.Files(label='Images for your concept')
-                concept_prompt = gr.Textbox(label='Concept Prompt',
-                                            max_lines=1, placeholder='Example: "photo of a \<new1\> cat"')
-                class_prompt = gr.Textbox(label='Regularization set Prompt',
+                with gr.Row():
+                    class_prompt = gr.Textbox(label='Class Prompt',
                                             max_lines=1, placeholder='Example: "cat"')
+                    with gr.Column():
+                        modifier_token = gr.Checkbox(label='modifier token',
+                                                    value=True)
+                        train_text_encoder = gr.Checkbox(label='Train Text Encoder',
+                                                 value=False)
+                concept_prompt = gr.Textbox(label='Concept Prompt',
+                                                max_lines=1, placeholder='Example: "photo of a \<new1\> cat"')
                 gr.Markdown('''
-                    - Use "\<new1\>" appended in front of the concept, e.g., "\<new1\> cat", if modifier_token is enabled.
-                    - For a new concept an e.g. concept_prompt is "photo of a \<new1\> cat" and "cat" for class_prompt.
-                    - For a style concept, use "painting in the style of \<new1\> art" for concept_prompt and "art" for class_prompt.
+                    - We use "\<new1\>" modifier token in front of the concept, e.g., "\<new1\> cat". By default modifier_token is enabled.
+                    - If "Train Text Encoder", disable "modifier token" and use any unique text to describe the concept e.g. "ktn cat". 
+                    - For a new concept an e.g. concept prompt is "photo of a \<new1\> cat" and "cat" for class prompt.
+                    - For a style concept, use "painting in the style of \<new1\> art" for concept prompt and "art" for class prompt.
+                    - Class prompt should be the object category.
                     ''')
             with gr.Box():
                 gr.Markdown('Training Parameters')
                 num_training_steps = gr.Number(
                     label='Number of Training Steps', value=1000, precision=0)
                 learning_rate = gr.Number(label='Learning Rate', value=0.00001)
-                train_text_encoder = gr.Checkbox(label='Train Text Encoder',
-                                                 value=False)
-                modifier_token = gr.Checkbox(label='modifier token',
-                                                 value=True)
                 batch_size = gr.Number(
                     label='batch_size', value=1, precision=0)
-                gradient_accumulation = gr.Number(
-                    label='Number of Gradient Accumulation',
-                    value=1,
-                    precision=0)
                 with gr.Row():
                     use_8bit_adam = gr.Checkbox(label='Use 8bit Adam', value=True) 
                     gradient_checkpointing = gr.Checkbox(label='Enable gradient checkpointing', value=False)
+                with gr.Accordion('Other Parameters', open=False):
+                    gradient_accumulation = gr.Number(
+                        label='Number of Gradient Accumulation',
+                        value=1,
+                        precision=0)
+                    gen_images = gr.Checkbox(label='Generated images as regularization',
+                                                 value=False)
                 gr.Markdown('''
                     - It will take about ~10 minutes to train for 1000 steps and ~21GB on a 3090 GPU. 
-                    - Our results in the paper are with the above batch-size of 2 and 2 GPUs.
+                    - Our results in the paper are trained with batch-size 4 (8 including class regularization samples).
                     - Enable gradient checkpointing for lower memory requirements (~14GB) at the expense of slower backward pass.
-                    - If "Train Text Encoder", disable "modifier token".
                     - Note that your trained models will be deleted when the second training is started. You can upload your trained model in the "Upload" tab.
                     ''')
 
@@ -136,7 +151,8 @@ def create_training_demo(trainer: Trainer,
                              gradient_accumulation,
                              batch_size,
                              use_8bit_adam,
-                             gradient_checkpointing
+                             gradient_checkpointing,
+                             gen_images
                          ],
                          outputs=[
                              training_status,
@@ -174,6 +190,10 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                     value='CompVis/stable-diffusion-v1-4',
                     label='Base Model',
                     visible=True)
+                resolution = gr.Dropdown(choices=[512, 768],
+                                 value=512,
+                                 label='Resolution',
+                                 visible=True)
                 reload_button = gr.Button('Reload Weight List')
                 weight_name = gr.Dropdown(choices=find_weight_files(),
                                                value='custom-diffusion-models/cat.bin',
@@ -214,6 +234,7 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                 gr.Markdown('''
                 - Models with names starting with "custom-diffusion-models/" are the pretrained models provided in the [original repo](https://github.com/adobe-research/custom-diffusion), and the ones with names starting with "results/delta.bin" are your trained models.
                 - After training, you can press "Reload Weight List" button to load your trained model names.
+                - Change default batch-size and steps for faster sampling. 
                 ''')
             with gr.Column():
                 result = gr.Image(label='Result')
@@ -231,6 +252,7 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                           guidance_scale,
                           eta,
                           batch_size,
+                          resolution
                       ],
                       outputs=result,
                       queue=False)
@@ -244,6 +266,7 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                              guidance_scale,
                              eta,
                              batch_size,
+                             resolution
                          ],
                          outputs=result,
                          queue=False)
@@ -282,6 +305,7 @@ with gr.Blocks(css='style.css') as demo:
 
     gr.Markdown(TITLE)
     gr.Markdown(DESCRIPTION)
+    gr.Markdown(DETAILDESCRIPTION)
 
     with gr.Tabs():
         with gr.TabItem('Train'):

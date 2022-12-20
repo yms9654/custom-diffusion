@@ -61,6 +61,7 @@ class InferencePipeline:
         guidance_scale: float,
         eta: float,
         batch_size: int,
+        resolution: int,
     ) -> PIL.Image.Image:
         if not torch.cuda.is_available():
             raise gr.Error('CUDA is not available.')
@@ -71,6 +72,7 @@ class InferencePipeline:
         out = self.pipe([prompt]*batch_size,
                         num_inference_steps=n_steps,
                         guidance_scale=guidance_scale,
+                        height=resolution, width=resolution,
                         eta = eta,
                         generator=generator)  # type: ignore
         out = out.images
