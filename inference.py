@@ -75,6 +75,7 @@ class InferencePipeline:
                         height=resolution, width=resolution,
                         eta = eta,
                         generator=generator)  # type: ignore
+        torch.cuda.empty_cache()
         out = out.images
         out = PIL.Image.fromarray(np.hstack([np.array(x) for x in out]))
         return out

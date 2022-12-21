@@ -25,8 +25,7 @@ It is recommended to upgrade to GPU in Settings after duplicating this space to 
 DETAILDESCRIPTION='''
 Custom Diffusion allows you to fine-tune text-to-image diffusion models, such as Stable Diffusion, given a few images of a new concept (~4-20). 
 We fine-tune only a subset of model parameters, namely key and value projection matrices, in the cross-attention layers and the modifier token used to represent the object. 
-This also reduces the extra storage for each additional concept to 75MB.
-Our method further allows you to use a combination of concepts. Demo for multiple concepts will be added soon.
+This also reduces the extra storage for each additional concept to 75MB. Our method also allows you to use a combination of concepts. There's still limitations on which compositions work. For more analysis please refer to our [website](https://www.cs.cmu.edu/~custom-diffusion/). 
 <center>
 <img src="https://huggingface.co/spaces/nupurkmr9/custom-diffusion/resolve/main/method.jpg" width="600" align="center" >
 </center>
@@ -81,27 +80,82 @@ def create_training_demo(trainer: Trainer,
 
         with gr.Row():
             with gr.Box():
-                gr.Markdown('Training Data')
-                concept_images = gr.Files(label='Images for your concept')
-                with gr.Row():
-                    class_prompt = gr.Textbox(label='Class Prompt',
-                                            max_lines=1, placeholder='Example: "cat"')
-                    with gr.Column():
-                        modifier_token = gr.Checkbox(label='modifier token',
-                                                    value=True)
-                        train_text_encoder = gr.Checkbox(label='Train Text Encoder',
-                                                 value=False)
-                concept_prompt = gr.Textbox(label='Concept Prompt',
-                                                max_lines=1, placeholder='Example: "photo of a \<new1\> cat"')
+                concept_images_collection = []
+                concept_prompt_collection = []
+                class_prompt_collection = []
+                buttons_collection = []
+                delete_collection = []
+                is_visible = []
+                maximum_concepts = 3
+                row = [None] * maximum_concepts
+                for x in range(maximum_concepts):
+                    ordinal = lambda n: "%d%s" % (n, "tsnrhtdd"[(n // 10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
+                    ordinal_concept = ["<new1> cat", "<new2> wooden pot", "<new3> chair"]
+                    if(x == 0):
+                        visible = True
+                        is_visible.append(gr.State(value=True))
+                    else:
+                        visible = False
+                        is_visible.append(gr.State(value=False))
+
+                    concept_images_collection.append(gr.Files(label=f'''Upload the images for your {ordinal(x+1) if (x>0) else ""} concept''', visible=visible))
+                    with gr.Column(visible=visible) as row[x]:
+                        concept_prompt_collection.append(
+                            gr.Textbox(label=f'''{ordinal(x+1) if (x>0) else ""} concept prompt ''', max_lines=1, 
+                                        placeholder=f'''Example: "photo of a {ordinal_concept[x]}"''' )
+                            )  
+                        class_prompt_collection.append(
+                            gr.Textbox(label=f'''{ordinal(x+1) if (x>0) else ""} class prompt ''', 
+                                        max_lines=1, placeholder=f'''Example: "{ordinal_concept[x][7:]}"''')
+                            )
+                    with gr.Row():
+                        if(x < maximum_concepts-1):
+                            buttons_collection.append(gr.Button(value=f"Add {ordinal(x+2)} concept", visible=visible))
+                        if(x > 0):
+                            delete_collection.append(gr.Button(value=f"Delete {ordinal(x+1)} concept"))
+            
+                counter_add = 1
+                for button in buttons_collection:
+                    if(counter_add < len(buttons_collection)):
+                        button.click(lambda:
+                        [gr.update(visible=True),gr.update(visible=True), gr.update(visible=False), gr.update(visible=True), True, None],
+                        None, 
+                        [row[counter_add], concept_images_collection[counter_add], buttons_collection[counter_add-1], buttons_collection[counter_add], is_visible[counter_add], concept_images_collection[counter_add]], queue=False)
+                    else:
+                        button.click(lambda:
+                        [gr.update(visible=True),gr.update(visible=True), gr.update(visible=False), True], 
+                        None, 
+                        [row[counter_add], concept_images_collection[counter_add], buttons_collection[counter_add-1], is_visible[counter_add]], queue=False)
+                    counter_add += 1
+                
+                counter_delete = 1
+                for delete_button in delete_collection:
+                    if(counter_delete < len(delete_collection)+1):
+                        if counter_delete == 1:
+                            delete_button.click(lambda:
+                            [gr.update(visible=False, value=None),gr.update(visible=False), gr.update(visible=True), gr.update(visible=False),False], 
+                            None, 
+                            [concept_images_collection[counter_delete], row[counter_delete], buttons_collection[counter_delete-1], buttons_collection[counter_delete], is_visible[counter_delete]], queue=False)
+                        else:
+                            delete_button.click(lambda:
+                            [gr.update(visible=False, value=None),gr.update(visible=False), gr.update(visible=True), False], 
+                            None, 
+                            [concept_images_collection[counter_delete], row[counter_delete], buttons_collection[counter_delete-1], is_visible[counter_delete]], queue=False)
+                    counter_delete += 1
                 gr.Markdown('''
-                    - We use "\<new1\>" modifier token in front of the concept, e.g., "\<new1\> cat". By default modifier_token is enabled.
-                    - If "Train Text Encoder", disable "modifier token" and use any unique text to describe the concept e.g. "ktn cat". 
-                    - For a new concept an e.g. concept prompt is "photo of a \<new1\> cat" and "cat" for class prompt.
-                    - For a style concept, use "painting in the style of \<new1\> art" for concept prompt and "art" for class prompt.
-                    - Class prompt should be the object category.
-                    ''')
+                        - We use "\<new1\>" modifier_token in front of the concept, e.g., "\<new1\> cat". For multiple concepts use "\<new2\>",  "\<new3\>" etc. Increase the number of steps with more concepts.
+                        - For a new concept an e.g. concept prompt is "photo of a \<new1\> cat" and "cat" for class prompt.
+                        - For a style concept, use "painting in the style of \<new1\> art" for concept prompt and "art" for class prompt.
+                        - Class prompt should be the object category.
+                        - If "Train Text Encoder", disable "modifier token" and use any unique text to describe the concept e.g. "ktn cat". 
+                        ''')
             with gr.Box():
                 gr.Markdown('Training Parameters')
+                with gr.Row():
+                    modifier_token = gr.Checkbox(label='modifier token',
+                                                value=True)
+                    train_text_encoder = gr.Checkbox(label='Train Text Encoder',
+                                            value=False)
                 num_training_steps = gr.Number(
                     label='Number of Training Steps', value=1000, precision=0)
                 learning_rate = gr.Number(label='Learning Rate', value=0.00001)
@@ -115,6 +169,10 @@ def create_training_demo(trainer: Trainer,
                         label='Number of Gradient Accumulation',
                         value=1,
                         precision=0)
+                    num_reg_images = gr.Number(
+                        label='Number of Class Concept images',
+                        value=200,
+                        precision=0)
                     gen_images = gr.Checkbox(label='Generated images as regularization',
                                                  value=False)
                 gr.Markdown('''
@@ -122,6 +180,7 @@ def create_training_demo(trainer: Trainer,
                     - Our results in the paper are trained with batch-size 4 (8 including class regularization samples).
                     - Enable gradient checkpointing for lower memory requirements (~14GB) at the expense of slower backward pass.
                     - Note that your trained models will be deleted when the second training is started. You can upload your trained model in the "Upload" tab.
+                    - We retrieve real images for class concept using clip_retireval library which can take some time. 
                     ''')
 
         run_button = gr.Button('Start Training')
@@ -141,9 +200,6 @@ def create_training_demo(trainer: Trainer,
                          inputs=[
                              base_model,
                              resolution,
-                             concept_images,
-                             concept_prompt,
-                             class_prompt,
                              num_training_steps,
                              learning_rate,
                              train_text_encoder,
@@ -152,8 +208,13 @@ def create_training_demo(trainer: Trainer,
                              batch_size,
                              use_8bit_adam,
                              gradient_checkpointing,
-                             gen_images
-                         ],
+                             gen_images,
+                             num_reg_images,
+                         ] +
+                             concept_images_collection + 
+                             concept_prompt_collection +
+                             class_prompt_collection 
+                         ,
                          outputs=[
                              training_status,
                              output_files,
