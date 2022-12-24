@@ -283,7 +283,7 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                                           minimum=0,
                                           maximum=500,
                                           step=1,
-                                          value=200)
+                                          value=100)
                     guidance_scale = gr.Slider(label='CFG Scale',
                                                minimum=0,
                                                maximum=50,
@@ -305,7 +305,7 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                 gr.Markdown('''
                 - Models with names starting with "custom-diffusion-models/" are the pretrained models provided in the [original repo](https://github.com/adobe-research/custom-diffusion), and the ones with names starting with "results/delta.bin" are your trained models.
                 - After training, you can press "Reload Weight List" button to load your trained model names.
-                - Change batch-size and number of steps for more and better samples. 
+                - Increase number of steps in Other parameters for better samples qualitatively. 
                 ''')
             with gr.Column():
                 result = gr.Image(label='Result')
