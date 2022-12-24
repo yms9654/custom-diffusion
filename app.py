@@ -3,6 +3,16 @@
 
 The code in this repo is partly adapted from the following repository:
 https://huggingface.co/spaces/hysts/LoRA-SD-training
+MIT License
+Copyright (c) 2022 hysts
+
+==========================================================================================
+
+Adobe’s modifications are Copyright 2022 Adobe Research. All rights reserved.
+Adobe’s modifications are licensed under the Adobe Research License. To view a copy of the license, visit
+LICENSE.
+
+==========================================================================================
 """
 
 from __future__ import annotations
@@ -60,7 +70,7 @@ def show_warning(warning_text: str) -> gr.Blocks:
 
 
 def update_output_files() -> dict:
-    paths = sorted(pathlib.Path('results').glob('*.pt'))
+    paths = sorted(pathlib.Path('results').glob('*.bin'))
     paths = [path.as_posix() for path in paths]  # type: ignore
     return gr.update(value=paths or None)
 
