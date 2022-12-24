@@ -244,7 +244,7 @@ def create_training_demo(trainer: Trainer,
 def find_weight_files() -> list[str]:
     curr_dir = pathlib.Path(__file__).parent
     paths = sorted(curr_dir.rglob('*.bin'))
-    paths = [path for path in paths if '.lfs' not in path.name]
+    paths = [path for path in paths if '.lfs' not in str(path)]
     return [path.relative_to(curr_dir).as_posix() for path in paths]
 
 
@@ -298,14 +298,14 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                                                minimum=0,
                                                maximum=10.,
                                                step=1,
-                                               value=2)
+                                               value=1)
 
                 run_button = gr.Button('Generate')
 
                 gr.Markdown('''
                 - Models with names starting with "custom-diffusion-models/" are the pretrained models provided in the [original repo](https://github.com/adobe-research/custom-diffusion), and the ones with names starting with "results/delta.bin" are your trained models.
                 - After training, you can press "Reload Weight List" button to load your trained model names.
-                - Change default batch-size and steps for faster sampling. 
+                - Change batch-size and number of steps for more and better samples. 
                 ''')
             with gr.Column():
                 result = gr.Image(label='Result')
