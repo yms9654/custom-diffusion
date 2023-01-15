@@ -47,7 +47,7 @@ class InferencePipeline:
             pipe = pipe.to(self.device)
 
         from src import diffuser_training
-        diffuser_training.load_model(pipe.text_encoder, pipe.tokenizer, pipe.unet, weight_path, '<new1>')
+        diffuser_training.load_model(pipe.text_encoder, pipe.tokenizer, pipe.unet, weight_path, compress=False)
 
         self.pipe = pipe
 
