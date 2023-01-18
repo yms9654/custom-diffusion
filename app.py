@@ -80,7 +80,7 @@ def create_training_demo(trainer: Trainer,
     with gr.Blocks() as demo:
         base_model = gr.Dropdown(
             choices=['stabilityai/stable-diffusion-2-1-base', 'CompVis/stable-diffusion-v1-4'],
-            value='CompVis/stable-diffusion-v1-4',
+            value='stabilityai/stable-diffusion-2-1-base',
             label='Base Model',
             visible=True)
         resolution = gr.Dropdown(choices=['512', '768'],
@@ -258,7 +258,7 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
             with gr.Column():
                 base_model = gr.Dropdown(
                     choices=['stabilityai/stable-diffusion-2-1-base', 'CompVis/stable-diffusion-v1-4'],
-                    value='CompVis/stable-diffusion-v1-4',
+                    value='stabilityai/stable-diffusion-2-1-base',
                     label='Base Model',
                     visible=True)
                 resolution = gr.Dropdown(choices=[512, 768],
@@ -274,10 +274,10 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                     max_lines=1,
                     placeholder='Example: "\<new1\> cat in outer space"')
                 seed = gr.Slider(label='Seed',
-                                 minimum=0,
+                                 minimum=-1,
                                  maximum=100000,
                                  step=1,
-                                 value=42)
+                                 value=-1)
                 with gr.Accordion('Other Parameters', open=False):
                     num_steps = gr.Slider(label='Number of Steps',
                                           minimum=0,
@@ -386,4 +386,4 @@ with gr.Blocks(css='style.css') as demo:
         with gr.TabItem('Upload'):
             create_upload_demo()
 
-demo.queue(default_enabled=False).launch(share=False)
+demo.queue(default_enabled=True).launch(share=True)

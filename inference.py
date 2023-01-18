@@ -68,6 +68,10 @@ class InferencePipeline:
 
         self.load_pipe(base_model, weight_name)
 
+        if seed == -1:
+            import random
+            seed = random.randint(1, 100000)
+
         generator = torch.Generator(device=self.device).manual_seed(seed)
         out = self.pipe([prompt]*batch_size,
                         num_inference_steps=n_steps,
