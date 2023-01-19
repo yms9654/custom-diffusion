@@ -10,6 +10,7 @@ import numpy as np
 
 import torch
 from diffusers import StableDiffusionPipeline
+# from diffusers import EulerAncestralDiscreteScheduler
 sys.path.insert(0, './custom-diffusion')
 
 
@@ -73,13 +74,19 @@ class InferencePipeline:
             seed = random.randint(1, 100000)
 
         generator = torch.Generator(device=self.device).manual_seed(seed)
-        out = self.pipe([prompt]*batch_size,
-                        num_inference_steps=n_steps,
-                        guidance_scale=guidance_scale,
-                        height=resolution, width=resolution,
-                        eta = eta,
-                        generator=generator)  # type: ignore
-        torch.cuda.empty_cache()
-        out = out.images
-        out = PIL.Image.fromarray(np.hstack([np.array(x) for x in out]))
-        return out
+
+        ret = []
+        for i in range(2):
+            out = self.pipe([prompt]*batch_size,
+                            num_inference_steps=n_steps,
+                            guidance_scale=guidance_scale,
+                            height=resolution, width=resolution,
+                            eta = eta,
+                            generator=generator)  # type: ignore
+
+            out = out.images
+            for x in out:
+                ret.append(PIL.Image.fromarray(np.array(x)))
+
+        # torch.cuda.empty_cache()
+        return ret

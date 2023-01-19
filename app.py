@@ -28,9 +28,7 @@ from trainer import Trainer
 from uploader import upload
 
 TITLE = '# Custom Diffusion + StableDiffusion Training UI'
-DESCRIPTION = '''This is a demo for [https://github.com/adobe-research/custom-diffusion](https://github.com/adobe-research/custom-diffusion).
-It is recommended to upgrade to GPU in Settings after duplicating this space to use it.
-<a href="https://huggingface.co/spaces/nupurkmr9/custom-diffusion?duplicate=true"><img src="https://bit.ly/3gLdBN6" alt="Duplicate Space"></a>
+DESCRIPTION = '''
 '''
 DETAILDESCRIPTION='''
 Custom Diffusion allows you to fine-tune text-to-image diffusion models, such as Stable Diffusion, given a few images of a new concept (~4-20). 
@@ -267,7 +265,7 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                                  visible=True)
                 reload_button = gr.Button('Reload Weight List')
                 weight_name = gr.Dropdown(choices=find_weight_files(),
-                                               value='custom-diffusion-models/cat.bin',
+                                               value='results/delta.bin',
                                                label='Custom Diffusion Weight File')
                 prompt = gr.Textbox(
                     label='Prompt',
@@ -282,13 +280,13 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                     num_steps = gr.Slider(label='Number of Steps',
                                           minimum=0,
                                           maximum=500,
-                                          step=1,
-                                          value=100)
+                                          step=10,
+                                          value=50)
                     guidance_scale = gr.Slider(label='CFG Scale',
                                                minimum=0,
                                                maximum=50,
-                                               step=0.1,
-                                               value=6)
+                                               step=0.5,
+                                               value=7)
                     eta = gr.Slider(label='DDIM eta',
                                                minimum=0,
                                                maximum=1.,
@@ -298,7 +296,7 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                                                minimum=0,
                                                maximum=10.,
                                                step=1,
-                                               value=1)
+                                               value=4)
 
                 run_button = gr.Button('Generate')
 
@@ -308,7 +306,9 @@ def create_inference_demo(pipe: InferencePipeline) -> gr.Blocks:
                 - Increase number of steps in Other parameters for better samples qualitatively. 
                 ''')
             with gr.Column():
-                result = gr.Image(label='Result')
+                result = []
+                for i in range(8):
+                    result.append(gr.Image(label='Result'))
 
         reload_button.click(fn=reload_custom_diffusion_weight_list,
                             inputs=None,
@@ -386,4 +386,4 @@ with gr.Blocks(css='style.css') as demo:
         with gr.TabItem('Upload'):
             create_upload_demo()
 
-demo.queue(default_enabled=True).launch(share=True)
+demo.queue(default_enabled=True).launch(share=True, debug=True)
